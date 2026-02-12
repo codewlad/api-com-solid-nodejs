@@ -1,17 +1,29 @@
+import 'dotenv/config'
 import fastify from 'fastify'
-import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '../generated/prisma/client'
-
-const connectionString = `${process.env.DATABASE_URL}`
+import { z } from 'zod'
+import { prisma } from './lib/prisma'
 
 export const app = fastify()
 
-const adapter = new PrismaPg({ connectionString })
-const prisma = new PrismaClient({ adapter })
+console.log(process.env.DATABASE_URL)
 
-prisma.user.create({
-  data: {
-    name: 'Wladimir Ferreira',
-    email: 'wladimir.ferreira@example.com',
-  },
+app.post('/users', async (request, reply) => {
+  const createUserBodySchema = z.object({
+    name: z.string(),
+    email: z.string().email(),
+    password: z.string().min(6),
+  })
+
+  const { name, email, password } = createUserBodySchema.parse(request.body)
+
+  await prisma.user.create({
+    data: {
+      id: crypto.randomUUID(),
+      name,
+      email,
+      password_hash: password,
+    },
+  })
+
+  return reply.status(201).send()
 })
