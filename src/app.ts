@@ -1,29 +1,28 @@
 import 'dotenv/config'
 import fastify from 'fastify'
-import { z } from 'zod'
-import { prisma } from './lib/prisma'
+import { appRoutes } from './http/routes'
+import { ZodError } from 'zod'
+import { env } from './env'
 
 export const app = fastify()
 
-console.log(process.env.DATABASE_URL)
+app.register(appRoutes)
 
-app.post('/users', async (request, reply) => {
-  const createUserBodySchema = z.object({
-    name: z.string(),
-    email: z.string().email(),
-    password: z.string().min(6),
+app.setErrorHandler((error, _request, reply) => {
+  if (error instanceof ZodError) {
+    return reply.status(400).send({
+      message: 'Validation error.',
+      issues: error.format(),
+    })
+  }
+
+  if (env.NODE_ENV !== 'prod') {
+    console.error(error)
+  } else {
+    // TODO: Here we should log the error in an external tool like DataDog, Sentry, etc.
+  }
+
+  return reply.status(500).send({
+    message: 'Internal server error.',
   })
-
-  const { name, email, password } = createUserBodySchema.parse(request.body)
-
-  await prisma.user.create({
-    data: {
-      id: crypto.randomUUID(),
-      name,
-      email,
-      password_hash: password,
-    },
-  })
-
-  return reply.status(201).send()
 })

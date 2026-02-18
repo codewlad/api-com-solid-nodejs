@@ -15,6 +15,8 @@
         "semi": false,
         "endOfLine": "auto"        
       }
-    ]
+    ],
+    "camelcase": "off",
+    "no-useless-constructor": "off"
   }
 }
