@@ -1,4 +1,4 @@
-import { Gym, Prisma } from '@prisma/client'
+import { Gym, Prisma } from 'prisma/generated/prisma/client'
 import { FindManyNearbyParams, GymsRepository } from '../gyms-repository'
 import { getDistanceBetweenCoordinates } from '@/use-cases/utils/get-distance-between-coordinates'
 
